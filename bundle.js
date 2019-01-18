@@ -86,7 +86,9 @@ document.addEventListener('DOMContentLoaded', function () {
   console.log(boid.boids);
 
   var update = function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     boid.draw(ctx);
+    boid.update();
   };
 
   var animate = function animate() {
@@ -118,7 +120,7 @@ var Boid = function () {
 
     this.state = {};
     this.boids = [];
-    this.numberOfBoids = 10;
+    this.numberOfBoids = 100;
   }
 
   _createClass(Boid, [{
@@ -138,6 +140,20 @@ var Boid = function () {
     value: function draw(ctx) {
       this.boids.forEach(function (boid) {
         ctx.fillRect(boid.x, boid.y, 10, 10);
+      });
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      this.boids.forEach(function (boid) {
+        if (boid.x > 1400) {
+          boid.x = 0;
+        }
+        if (boid.y > 600) {
+          boid.y = 0;
+        }
+        boid.x += Math.random() * 6;
+        boid.y += Math.random() * 6;
       });
     }
   }]);
