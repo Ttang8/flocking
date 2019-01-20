@@ -130,7 +130,8 @@ var Boid = function () {
       while (i < this.numberOfBoids) {
         this.boids.push({
           x: Math.random() * 1400,
-          y: Math.random() * 600
+          y: Math.random() * 600,
+          velocity: [Math.random() * 5 - 2.5, Math.random() * 5 - 2.5]
         });
         i++;
       }
@@ -149,11 +150,17 @@ var Boid = function () {
         if (boid.x > 1400) {
           boid.x = 0;
         }
+        if (boid.x < 0) {
+          boid.x = 1400;
+        }
         if (boid.y > 600) {
           boid.y = 0;
         }
-        boid.x += Math.random() * 6;
-        boid.y += Math.random() * 6;
+        if (boid.y < 0) {
+          boid.y = 600;
+        }
+        boid.x += boid.velocity[0];
+        boid.y += boid.velocity[1];
       });
     }
   }]);
