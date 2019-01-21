@@ -81,14 +81,20 @@ document.addEventListener('DOMContentLoaded', function () {
   var ctx = canvas.getContext('2d');
 
   var myReq = void 0;
-  var boid = new _boid2.default();
-  boid.createBoids();
-  console.log(boid.boids);
+  var flock = [];
+  var numBoids = 500;
+
+  for (var i = 0; i < numBoids; i++) {
+    flock.push(new _boid2.default());
+  }
 
   var update = function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    boid.draw(ctx);
-    boid.update();
+    flock.forEach(function (boid) {
+      boid.draw(ctx);
+      boid.update();
+      boid.alignment(flock);
+    });
   };
 
   var animate = function animate() {
@@ -115,53 +121,61 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Boid = function () {
-  function Boid(props) {
+  function Boid() {
     _classCallCheck(this, Boid);
 
-    this.state = {};
-    this.boids = [];
-    this.numberOfBoids = 100;
+    this.positionX = Math.random() * 1400;
+    this.positionY = Math.random() * 600;
+    this.velocity = [Math.random() * 5 - 2.5, Math.random() * 5 - 2.5];
   }
 
   _createClass(Boid, [{
-    key: "createBoids",
-    value: function createBoids() {
-      var i = 0;
-      while (i < this.numberOfBoids) {
-        this.boids.push({
-          x: Math.random() * 1400,
-          y: Math.random() * 600,
-          velocity: [Math.random() * 5 - 2.5, Math.random() * 5 - 2.5]
-        });
-        i++;
-      }
-    }
-  }, {
     key: "draw",
     value: function draw(ctx) {
-      this.boids.forEach(function (boid) {
-        ctx.fillRect(boid.x, boid.y, 10, 10);
+      ctx.fillRect(this.positionX, this.positionY, 10, 10);
+    }
+  }, {
+    key: "alignment",
+    value: function alignment(boids) {
+      var _this = this;
+
+      var localDetection = 15;
+      var average = [0, 0];
+      var total = 0;
+      boids.forEach(function (boid) {
+        var distance = Math.sqrt(Math.pow(_this.positionX - boid.positionX, 2) + Math.pow(_this.positionY - boid.positionY, 2));
+        if (boid != _this && distance < localDetection) {
+          average[0] += boid.velocity[0];
+          average[1] += boid.velocity[1];
+          total++;
+        }
       });
+      if (total > 0) {
+        average[0] /= total;
+        average[1] /= total;
+        average[0] -= this.velocity[0];
+        average[1] -= this.velocity[1];
+        this.velocity[0] += average[0];
+        this.velocity[1] += average[1];
+      }
     }
   }, {
     key: "update",
     value: function update() {
-      this.boids.forEach(function (boid) {
-        if (boid.x > 1400) {
-          boid.x = 0;
-        }
-        if (boid.x < 0) {
-          boid.x = 1400;
-        }
-        if (boid.y > 600) {
-          boid.y = 0;
-        }
-        if (boid.y < 0) {
-          boid.y = 600;
-        }
-        boid.x += boid.velocity[0];
-        boid.y += boid.velocity[1];
-      });
+      if (this.positionX > 1400) {
+        this.positionX = 0;
+      }
+      if (this.positionX < 0) {
+        this.positionX = 1400;
+      }
+      if (this.positionY > 600) {
+        this.positionY = 0;
+      }
+      if (this.positionY < 0) {
+        this.positionY = 600;
+      }
+      this.positionX += this.velocity[0];
+      this.positionY += this.velocity[1];
     }
   }]);
 
