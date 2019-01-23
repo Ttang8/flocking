@@ -82,14 +82,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var myReq = void 0;
   var flock = [];
-  var numBoids = 300;
+  var numBoids = 100;
   var mouseX = void 0;
   var mouseY = void 0;
+  var lastTime = 0;
+  var deltaTime = void 0;
 
   window.addEventListener('mousemove', function (e) {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    console.log(mouseX, mouseY);
   });
 
   for (var i = 0; i < numBoids; i++) {
@@ -104,11 +105,15 @@ document.addEventListener('DOMContentLoaded', function () {
       boid.cohesion(flock);
       boid.separation(flock);
       boid.avoidMouse(mouseX, mouseY);
-      boid.update();
+      boid.update(deltaTime);
     });
   };
 
   var animate = function animate() {
+    var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+    deltaTime = time - lastTime;
+    lastTime = time;
     myReq = requestAnimationFrame(animate);
     update();
   };
@@ -139,16 +144,34 @@ var Boid = function () {
     this.positionY = Math.random() * 600;
     this.velocity = [Math.random() * 6 - 3, Math.random() * 6 - 3];
     this.speed = 0.1;
+    this.execute = 0;
+    this.frame = Math.floor(Math.random() * 3 + 1);
+    this.bird = new Image();
+    this.bird.src = './assets/images/bird.png';
     this.maxVelocity = this.maxVelocity.bind(this);
+
+    //position 1: 50,0
+    //position 2:780,0 sw: 670
+    //position 3: 0,800
+    this.data = {
+      sx: 0,
+      sy: 0,
+      sw: 700,
+      sh: 670,
+      cx: this.positionX,
+      cy: this.positionY,
+      dw: 40,
+      dh: 40
+    };
   }
 
   _createClass(Boid, [{
-    key: "draw",
+    key: 'draw',
     value: function draw(ctx) {
-      ctx.fillRect(this.positionX, this.positionY, 10, 10);
+      ctx.drawImage(this.bird, this.data.sx, this.data.sy, this.data.sw, this.data.sh, this.positionX, this.positionY, this.data.dw, this.data.dh);
     }
   }, {
-    key: "alignment",
+    key: 'alignment',
     value: function alignment(boids) {
       var _this = this;
 
@@ -173,7 +196,7 @@ var Boid = function () {
       }
     }
   }, {
-    key: "cohesion",
+    key: 'cohesion',
     value: function cohesion(boids) {
       var _this2 = this;
 
@@ -202,11 +225,11 @@ var Boid = function () {
       }
     }
   }, {
-    key: "separation",
+    key: 'separation',
     value: function separation(boids) {
       var _this3 = this;
 
-      var localDetection = 10;
+      var localDetection = 20;
       var c = [0, 0];
       boids.forEach(function (boid) {
         var disX = _this3.positionX - boid.positionX;
@@ -223,7 +246,7 @@ var Boid = function () {
       });
     }
   }, {
-    key: "maxVelocity",
+    key: 'maxVelocity',
     value: function maxVelocity(velocity) {
       if (velocity > 3) {
         velocity = velocity / 3;
@@ -233,7 +256,7 @@ var Boid = function () {
       return velocity;
     }
   }, {
-    key: "avoidMouse",
+    key: 'avoidMouse',
     value: function avoidMouse(x, y) {
       var localDetection = 100;
       var c = [0, 0];
@@ -250,8 +273,9 @@ var Boid = function () {
       }
     }
   }, {
-    key: "update",
-    value: function update() {
+    key: 'update',
+    value: function update(deltaTime) {
+      this.execute += deltaTime;
       if (this.positionX > 1350) {
         // this.positionX = 0;
         this.velocity[0] += -1 * (1400 - this.positionX) / 25;
@@ -264,6 +288,25 @@ var Boid = function () {
       }
       if (this.positionY < 50) {
         this.velocity[1] += this.positionY / 25;
+      }
+      if (this.execute > 200) {
+        if (this.frame === 1) {
+          this.data.sx = 0;
+          this.data.sy = 0;
+          this.frame += 1;
+        } else if (this.frame === 2) {
+          this.data.sx = 780;
+          this.data.sy = 0;
+          this.frame += 1;
+        } else if (this.frame === 3) {
+          console.log('hit');
+          this.data.sx = 0;
+          this.data.sy = 800;
+          this.frame = 1;
+        }
+      }
+      if (this.execute > 200) {
+        this.execute = 0;
       }
       this.positionX += this.velocity[0];
       this.positionY += this.velocity[1];
