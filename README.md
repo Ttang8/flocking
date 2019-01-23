@@ -9,7 +9,7 @@ Visual simulation of birds flocking using the Boids model.
 ![screenShot](assets/images/screenshot1.png)
 Use sliders to change intensities of alignment, cohesion, and separation.
 
-![gif](assets/images/mouse_gif.png)
+![gif](assets/images/mouse_gif.gif)
 Birds will avoid the mouse as an custom added boundary.
 
 ## Boids Model
