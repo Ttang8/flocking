@@ -341,7 +341,7 @@ var Boid = function () {
       if (this.positionY < 50) {
         this.velocity[1] += this.positionY / 25;
       }
-      if (this.execute > 200) {
+      if (this.execute > 300) {
         if (this.frame === 1) {
           this.data.sx = 0;
           this.data.sy = 0;
@@ -356,7 +356,7 @@ var Boid = function () {
           this.frame = 1;
         }
       }
-      if (this.execute > 200) {
+      if (this.execute > 300) {
         this.execute = 0;
       }
       this.positionX += this.velocity[0];
