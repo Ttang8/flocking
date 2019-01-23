@@ -78,6 +78,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 document.addEventListener('DOMContentLoaded', function () {
   var canvas = document.getElementById('myCanvas');
+  var alignment = document.getElementById('alignment');
+  var cohesion = document.getElementById('cohesion');
+  var separation = document.getElementById('separation');
   var ctx = canvas.getContext('2d');
   var ctxH = canvas.height;
   var ctxW = canvas.width;
@@ -96,10 +99,25 @@ document.addEventListener('DOMContentLoaded', function () {
   var mouseY = void 0;
   var lastTime = 0;
   var deltaTime = void 0;
+  var alignmentDec = void 0;
+  var cohesionDec = void 0;
+  var separationDec = void 0;
 
   window.addEventListener('mousemove', function (e) {
     mouseX = e.clientX;
     mouseY = e.clientY;
+  });
+
+  alignment.addEventListener('change', function (e) {
+    alignmentDec = parseInt(e.srcElement.value);
+  });
+
+  cohesion.addEventListener('change', function (e) {
+    cohesionDec = parseInt(e.srcElement.value);
+  });
+
+  separation.addEventListener('change', function (e) {
+    separationDec = parseInt(e.srcElement.value);
   });
 
   window.onload = function () {
@@ -115,9 +133,9 @@ document.addEventListener('DOMContentLoaded', function () {
     drawBg();
     flock.forEach(function (boid) {
       boid.draw(ctx);
-      boid.alignment(flock);
-      boid.cohesion(flock);
-      boid.separation(flock);
+      boid.alignment(flock, alignmentDec);
+      boid.cohesion(flock, cohesionDec);
+      boid.separation(flock, separationDec);
       boid.avoidMouse(mouseX, mouseY);
       boid.update(deltaTime);
     });
@@ -203,7 +221,9 @@ var Boid = function () {
     value: function alignment(boids) {
       var _this = this;
 
-      var localDetection = 50;
+      var detectionRadius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
+
+      var localDetection = detectionRadius;
       var average = [0, 0];
       var total = 0;
       boids.forEach(function (boid) {
@@ -228,7 +248,9 @@ var Boid = function () {
     value: function cohesion(boids) {
       var _this2 = this;
 
-      var localDetection = 50;
+      var detectionRadius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
+
+      var localDetection = detectionRadius;
       var average = [0, 0];
       var total = 0;
       boids.forEach(function (boid) {
@@ -257,7 +279,9 @@ var Boid = function () {
     value: function separation(boids) {
       var _this3 = this;
 
-      var localDetection = 30;
+      var detectionRadius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 30;
+
+      var localDetection = detectionRadius;
       var c = [0, 0];
       boids.forEach(function (boid) {
         var disX = _this3.positionX - boid.positionX;
