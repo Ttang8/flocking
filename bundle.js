@@ -82,7 +82,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var myReq = void 0;
   var flock = [];
-  var numBoids = 500;
+  var numBoids = 300;
+  var mouseX = void 0;
+  var mouseY = void 0;
+
+  window.addEventListener('mousemove', function (e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    console.log(mouseX, mouseY);
+  });
 
   for (var i = 0; i < numBoids; i++) {
     flock.push(new _boid2.default());
@@ -92,8 +100,11 @@ document.addEventListener('DOMContentLoaded', function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     flock.forEach(function (boid) {
       boid.draw(ctx);
-      boid.update();
       boid.alignment(flock);
+      boid.cohesion(flock);
+      boid.separation(flock);
+      boid.avoidMouse(mouseX, mouseY);
+      boid.update();
     });
   };
 
@@ -126,7 +137,9 @@ var Boid = function () {
 
     this.positionX = Math.random() * 1400;
     this.positionY = Math.random() * 600;
-    this.velocity = [Math.random() * 5 - 2.5, Math.random() * 5 - 2.5];
+    this.velocity = [Math.random() * 6 - 3, Math.random() * 6 - 3];
+    this.speed = 0.1;
+    this.maxVelocity = this.maxVelocity.bind(this);
   }
 
   _createClass(Boid, [{
@@ -139,12 +152,14 @@ var Boid = function () {
     value: function alignment(boids) {
       var _this = this;
 
-      var localDetection = 15;
+      var localDetection = 50;
       var average = [0, 0];
       var total = 0;
       boids.forEach(function (boid) {
-        var distance = Math.sqrt(Math.pow(_this.positionX - boid.positionX, 2) + Math.pow(_this.positionY - boid.positionY, 2));
-        if (boid != _this && distance < localDetection) {
+        var disX = _this.positionX - boid.positionX;
+        var disY = _this.positionY - boid.positionY;
+        var distance = Math.sqrt(disX * disX + disY * disY);
+        if (boid !== _this && distance < localDetection) {
           average[0] += boid.velocity[0];
           average[1] += boid.velocity[1];
           total++;
@@ -153,26 +168,102 @@ var Boid = function () {
       if (total > 0) {
         average[0] /= total;
         average[1] /= total;
-        average[0] -= this.velocity[0];
-        average[1] -= this.velocity[1];
-        this.velocity[0] += average[0];
-        this.velocity[1] += average[1];
+        this.velocity[0] = this.velocity[0] + (average[0] - this.velocity[0]);
+        this.velocity[1] = this.velocity[1] + (average[1] - this.velocity[1]);
+      }
+    }
+  }, {
+    key: "cohesion",
+    value: function cohesion(boids) {
+      var _this2 = this;
+
+      var localDetection = 50;
+      var average = [0, 0];
+      var total = 0;
+      boids.forEach(function (boid) {
+        var disX = _this2.positionX - boid.positionX;
+        var disY = _this2.positionY - boid.positionY;
+        var distance = Math.sqrt(disX * disX + disY * disY);
+        if (boid !== _this2 && distance < localDetection) {
+          average[0] += boid.positionX;
+          average[1] += boid.positionY;
+          total++;
+        }
+      });
+      if (total > 0) {
+        average[0] /= total;
+        average[1] /= total;
+        // console.log((average[0] - this.positionX)/localDetection * 0.2);
+        this.velocity[0] = this.velocity[0] + (average[0] - this.positionX) / localDetection;
+        this.velocity[1] = this.velocity[1] + (average[1] - this.positionY) / localDetection;
+        this.velocity[0] = this.maxVelocity(this.velocity[0]);
+        this.velocity[1] = this.maxVelocity(this.velocity[1]);
+        // console.log(this.velocity);
+      }
+    }
+  }, {
+    key: "separation",
+    value: function separation(boids) {
+      var _this3 = this;
+
+      var localDetection = 10;
+      var c = [0, 0];
+      boids.forEach(function (boid) {
+        var disX = _this3.positionX - boid.positionX;
+        var disY = _this3.positionY - boid.positionY;
+        var distance = Math.sqrt(disX * disX + disY * disY);
+        if (boid !== _this3 && distance < localDetection) {
+          c[0] = c[0] - (boid.positionX - _this3.positionX);
+          c[1] = c[1] - (boid.positionY - _this3.positionY);
+          _this3.velocity[0] = _this3.velocity[0] + c[0] / distance;
+          _this3.velocity[1] = _this3.velocity[1] + c[1] / distance;
+          _this3.velocity[0] = _this3.maxVelocity(_this3.velocity[0]);
+          _this3.velocity[1] = _this3.maxVelocity(_this3.velocity[1]);
+        }
+      });
+    }
+  }, {
+    key: "maxVelocity",
+    value: function maxVelocity(velocity) {
+      if (velocity > 3) {
+        velocity = velocity / 3;
+      } else if (velocity < -3) {
+        velocity = velocity / 3;
+      }
+      return velocity;
+    }
+  }, {
+    key: "avoidMouse",
+    value: function avoidMouse(x, y) {
+      var localDetection = 100;
+      var c = [0, 0];
+      var disX = this.positionX - x;
+      var disY = this.positionY - y;
+      var distance = Math.sqrt(disX * disX + disY * disY);
+      if (distance < localDetection) {
+        c[0] = c[0] - (x - this.positionX);
+        c[1] = c[1] - (y - this.positionY);
+        this.velocity[0] = this.velocity[0] + c[0] / distance;
+        this.velocity[1] = this.velocity[1] + c[1] / distance;
+        this.velocity[0] = this.maxVelocity(this.velocity[0]);
+        this.velocity[1] = this.maxVelocity(this.velocity[1]);
       }
     }
   }, {
     key: "update",
     value: function update() {
-      if (this.positionX > 1400) {
-        this.positionX = 0;
+      if (this.positionX > 1350) {
+        // this.positionX = 0;
+        this.velocity[0] += -1 * (1400 - this.positionX) / 25;
       }
-      if (this.positionX < 0) {
-        this.positionX = 1400;
+      if (this.positionX < 50) {
+        this.velocity[0] += this.positionX / 25;
       }
-      if (this.positionY > 600) {
-        this.positionY = 0;
+      if (this.positionY > 550) {
+        this.velocity[1] += -1 * (600 - this.positionY) / 25;
       }
-      if (this.positionY < 0) {
-        this.positionY = 600;
+      if (this.positionY < 50) {
+        this.velocity[1] += this.positionY / 25;
       }
       this.positionX += this.velocity[0];
       this.positionY += this.velocity[1];
