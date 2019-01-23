@@ -82,6 +82,13 @@ document.addEventListener('DOMContentLoaded', function () {
   var ctxH = canvas.height;
   var ctxW = canvas.width;
 
+  var backgroundImage = new Image();
+  backgroundImage.src = './assets/images/sky_background.jpg';
+
+  var drawBg = function drawBg() {
+    ctx.drawImage(backgroundImage, 0, 0, ctxW, ctxH);
+  };
+
   var myReq = void 0;
   var flock = [];
   var numBoids = 100;
@@ -95,12 +102,17 @@ document.addEventListener('DOMContentLoaded', function () {
     mouseY = e.clientY;
   });
 
+  window.onload = function () {
+    drawBg();
+  };
+
   for (var i = 0; i < numBoids; i++) {
     flock.push(new _boid2.default(ctxW, ctxH));
   }
 
   var update = function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBg();
     flock.forEach(function (boid) {
       boid.draw(ctx);
       boid.alignment(flock);
@@ -172,7 +184,6 @@ var Boid = function () {
   _createClass(Boid, [{
     key: 'draw',
     value: function draw(ctx) {
-      console.log(this.velocity);
       if (this.velocity[0] < 0) {
         ctx.save();
         ctx.scale(-1, 1);
@@ -181,8 +192,8 @@ var Boid = function () {
         ctx.restore();
       } else {
         ctx.save();
-        ctx.scale(1, 1);
-        ctx.translate(this.canvas, 0);
+        // ctx.scale(1,1);
+        // ctx.translate(this.canvasW,0);
         ctx.drawImage(this.bird, this.data.sx, this.data.sy, this.data.sw, this.data.sh, this.positionX, this.positionY, this.data.dw, this.data.dh);
         ctx.restore();
       }
