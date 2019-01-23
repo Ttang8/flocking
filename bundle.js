@@ -79,6 +79,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 document.addEventListener('DOMContentLoaded', function () {
   var canvas = document.getElementById('myCanvas');
   var ctx = canvas.getContext('2d');
+  var ctxH = canvas.height;
+  var ctxW = canvas.width;
 
   var myReq = void 0;
   var flock = [];
@@ -94,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   for (var i = 0; i < numBoids; i++) {
-    flock.push(new _boid2.default());
+    flock.push(new _boid2.default(ctxW, ctxH));
   }
 
   var update = function update() {
@@ -137,11 +139,13 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Boid = function () {
-  function Boid() {
+  function Boid(width, height) {
     _classCallCheck(this, Boid);
 
-    this.positionX = Math.random() * 1400;
-    this.positionY = Math.random() * 600;
+    this.canvasW = width;
+    this.canvasH = height;
+    this.positionX = Math.random() * this.canvasW;
+    this.positionY = Math.random() * this.canvasH;
     this.velocity = [Math.random() * 6 - 3, Math.random() * 6 - 3];
     this.speed = 0.1;
     this.execute = 0;
@@ -160,15 +164,28 @@ var Boid = function () {
       sh: 670,
       cx: this.positionX,
       cy: this.positionY,
-      dw: 40,
-      dh: 40
+      dw: 50,
+      dh: 50
     };
   }
 
   _createClass(Boid, [{
     key: 'draw',
     value: function draw(ctx) {
-      ctx.drawImage(this.bird, this.data.sx, this.data.sy, this.data.sw, this.data.sh, this.positionX, this.positionY, this.data.dw, this.data.dh);
+      console.log(this.velocity);
+      if (this.velocity[0] < 0) {
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.translate(-this.canvasW, 0);
+        ctx.drawImage(this.bird, this.data.sx, this.data.sy, this.data.sw, this.data.sh, this.canvasW - 50 - this.positionX, this.positionY, this.data.dw, this.data.dh);
+        ctx.restore();
+      } else {
+        ctx.save();
+        ctx.scale(1, 1);
+        ctx.translate(this.canvas, 0);
+        ctx.drawImage(this.bird, this.data.sx, this.data.sy, this.data.sw, this.data.sh, this.positionX, this.positionY, this.data.dw, this.data.dh);
+        ctx.restore();
+      }
     }
   }, {
     key: 'alignment',
@@ -229,7 +246,7 @@ var Boid = function () {
     value: function separation(boids) {
       var _this3 = this;
 
-      var localDetection = 20;
+      var localDetection = 30;
       var c = [0, 0];
       boids.forEach(function (boid) {
         var disX = _this3.positionX - boid.positionX;
@@ -276,15 +293,15 @@ var Boid = function () {
     key: 'update',
     value: function update(deltaTime) {
       this.execute += deltaTime;
-      if (this.positionX > 1350) {
+      if (this.positionX > this.canvasW - 50) {
         // this.positionX = 0;
-        this.velocity[0] += -1 * (1400 - this.positionX) / 25;
+        this.velocity[0] += -1 * (this.canvasW - this.positionX) / 25;
       }
       if (this.positionX < 50) {
         this.velocity[0] += this.positionX / 25;
       }
-      if (this.positionY > 550) {
-        this.velocity[1] += -1 * (600 - this.positionY) / 25;
+      if (this.positionY > this.canvasH - 50) {
+        this.velocity[1] += -1 * (this.canvasH - this.positionY) / 25;
       }
       if (this.positionY < 50) {
         this.velocity[1] += this.positionY / 25;
@@ -299,7 +316,6 @@ var Boid = function () {
           this.data.sy = 0;
           this.frame += 1;
         } else if (this.frame === 3) {
-          console.log('hit');
           this.data.sx = 0;
           this.data.sy = 800;
           this.frame = 1;
